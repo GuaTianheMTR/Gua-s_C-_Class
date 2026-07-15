@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>C++ 学习闯关 · 详细课程+代码实操</title>
+    <style>
+        /* ===== 全局样式 ===== (与之前一致，省略以节省篇幅，实际保留) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #2563eb; --primary-light: #3b82f6; --primary-dark: #1d4ed8; --secondary: #7c3aed; --bg: #f0f4ff; --card-bg: #ffffff; --text: #1e293b; --text-light: #64748b; --border: #e2e8f0; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --shadow: 0 10px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.02); --radius: 16px; --transition: 0.3s ease; --code-bg: #1e293b; --code-text: #e2e8f0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; }
+        .app { max-width: 1100px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: var(--radius); padding: 28px 32px; color: #fff; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 28px; box-shadow: 0 12px 30px -8px rgba(37,99,235,0.3); }
+        .header-left h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+        .header-left h1 span { font-weight: 300; opacity: 0.85; }
+        .header-left p { font-size: 14px; opacity: 0.85; margin-top: 4px; }
+        .header-progress { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+        .header-progress .stats { display: flex; gap: 20px; font-size: 14px; background: rgba(255,255,255,0.15); padding: 8px 18px; border-radius: 40px; backdrop-filter: blur(4px); }
+        .header-progress .stats span { display: flex; align-items: center; gap: 6px; }
+        .header-progress .stats .num { font-weight: 700; font-size: 18px; }
+        .progress-bar-wrap { width: 160px; height: 6px; background: rgba(255,255,255,0.25); border-radius: 10px; overflow: hidden; }
+        .progress-bar-wrap .fill { height: 100%; background: #fff; border-radius: 10px; transition: width 0.5s ease; }
+        .tabs { display: flex; gap: 4px; background: var(--card-bg); border-radius: 14px; padding: 6px; margin-bottom: 28px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .tabs button { flex: 1; border: none; background: transparent; padding: 12px 20px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: var(--transition); color: var(--text-light); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .tabs button:hover { background: #f1f5f9; }
+        .tabs button.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.25); }
+        .tabs button .badge { background: rgba(255,255,255,0.2); padding: 0 10px; border-radius: 20px; font-size: 12px; }
+        .tabs button.active .badge { background: rgba(255,255,255,0.25); }
+        .panel { display: none; animation: fadeUp 0.35s ease; }
+        .panel.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .course-grid { display: flex; flex-direction: column; gap: 16px; }
+        .course-card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; transition: var(--transition); }
+        .course-card:hover { border-color: var(--primary-light); }
+        .course-header { padding: 18px 24px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: var(--transition); }
+        .course-header:hover { background: #f8faff; }
+        .course-header .left { display: flex; align-items: center; gap: 14px; }
+        .course-header .left .icon { font-size: 28px; }
+        .course-header .left .info h3 { font-size: 18px; font-weight: 600; }
+        .course-header .left .info .desc { font-size: 14px; color: var(--text-light); }
+        .course-header .arrow { font-size: 18px; color: var(--text-light); transition: transform 0.3s ease; }
+        .course-header.open .arrow { transform: rotate(180deg); }
+        .course-body { max-height: 0; overflow: hidden; transition: max-height 0.5s ease, padding 0.3s ease; padding: 0 24px; }
+        .course-body.open { max-height: 5000px; padding: 0 24px 24px 24px; }
+        .topic-item { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fafcff; transition: var(--transition); }
+        .topic-item:hover { border-color: var(--primary-light); }
+        .topic-header { padding: 12px 16px; background: #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 15px; transition: var(--transition); }
+        .topic-header:hover { background: #e2e8f0; }
+        .topic-header .arrow-topic { font-size: 14px; transition: transform 0.3s ease; color: var(--text-light); }
+        .topic-header.open .arrow-topic { transform: rotate(180deg); }
+        .topic-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease; padding: 0 16px; background: #fff; }
+        .topic-body.open { max-height: 2000px; padding: 16px; }
+        .topic-body .description { font-size: 15px; line-height: 1.7; color: var(--text); margin-bottom: 14px; }
+        .topic-body .code-block { position: relative; background: var(--code-bg); color: var(--code-text); border-radius: 10px; padding: 16px 20px; overflow-x: auto; font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace; font-size: 14px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+        .topic-body .code-block .copy-btn { position: absolute; top: 8px; right: 12px; background: rgba(255,255,255,0.1); border: none; color: #cbd5e1; padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: var(--transition); font-weight: 500; }
+        .topic-body .code-block .copy-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+        .topic-body .code-block .copy-btn.copied { background: var(--success); color: #fff; }
+        .topic-body .code-block code { display: block; }
+        /* 闯关卡样式与模态框样式与之前相同，略 */
+        .level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; }
+        .level-card { background: var(--card-bg); border-radius: var(--radius); border: 2px solid var(--border); padding: 22px 18px 18px; text-align: center; transition: var(--transition); box-shadow: var(--shadow); cursor: pointer; position: relative; }
+        .level-card:hover:not(.locked) { transform: translateY(-4px); border-color: var(--primary-light); box-shadow: 0 16px 30px -10px rgba(37,99,235,0.15); }
+        .level-card.locked { opacity: 0.55; cursor: not-allowed; filter: grayscale(0.3); }
+        .level-card .lvl-icon { font-size: 38px; margin-bottom: 6px; }
+        .level-card .lvl-num { font-size: 13px; color: var(--text-light); font-weight: 500; }
+        .level-card .lvl-name { font-size: 17px; font-weight: 700; margin: 4px 0; }
+        .level-card .lvl-status { font-size: 13px; margin-top: 8px; padding: 4px 14px; border-radius: 40px; display: inline-block; font-weight: 600; }
+        .level-card .lvl-status.done { background: #d1fae5; color: #065f46; }
+        .level-card .lvl-status.unlock { background: #dbeafe; color: #1e40af; }
+        .level-card .lvl-status.lock { background: #f1f5f9; color: #94a3b8; }
+        .level-card .lvl-score { font-size: 13px; color: var(--text-light); margin-top: 6px; }
+        .level-card .lock-icon { position: absolute; top: 12px; right: 14px; font-size: 18px; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.25s ease; }
+        .modal-overlay.open { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal { background: var(--card-bg); border-radius: var(--radius); max-width: 580px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 32px 30px 28px; box-shadow: 0 30px 60px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { font-size: 22px; font-weight: 700; }
+        .modal-header .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-light); transition: var(--transition); line-height: 1; }
+        .modal-header .close-btn:hover { color: var(--danger); transform: rotate(90deg); }
+        .modal .q-progress { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--text-light); margin-bottom: 18px; }
+        .modal .q-progress .bar { flex: 1; height: 4px; background: var(--border); border-radius: 10px; margin: 0 14px; overflow: hidden; }
+        .modal .q-progress .bar .fill { height: 100%; background: var(--primary); border-radius: 10px; transition: width 0.4s ease; }
+        .modal .question-text { font-size: 18px; font-weight: 500; margin-bottom: 20px; line-height: 1.6; }
+        .modal .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+        .modal .options .opt { padding: 14px 18px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: var(--transition); font-size: 15px; display: flex; align-items: center; gap: 12px; background: #fafcff; }
+        .modal .options .opt:hover:not(.disabled) { border-color: var(--primary-light); background: #eff6ff; }
+        .modal .options .opt .letter { width: 28px; height: 28px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: var(--text-light); flex-shrink: 0; transition: var(--transition); }
+        .modal .options .opt.selected { border-color: var(--primary); background: #eff6ff; }
+        .modal .options .opt.selected .letter { background: var(--primary); color: #fff; }
+        .modal .options .opt.correct { border-color: var(--success); background: #d1fae5; }
+        .modal .options .opt.correct .letter { background: var(--success); color: #fff; }
+        .modal .options .opt.wrong { border-color: var(--danger); background: #fee2e2; }
+        .modal .options .opt.wrong .letter { background: var(--danger); color: #fff; }
+        .modal .options .opt.disabled { cursor: default; }
+        .modal .options .opt .check { margin-left: auto; font-size: 18px; }
+        .modal .actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 6px; }
+        .modal .actions button { padding: 10px 28px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: var(--transition); }
+        .modal .actions .btn-primary { background: var(--primary); color: #fff; }
+        .modal .actions .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: scale(1.02); }
+        .modal .actions .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+        .modal .actions .btn-secondary { background: #f1f5f9; color: var(--text); }
+        .modal .actions .btn-secondary:hover { background: #e2e8f0; }
+        .result-box { text-align: center; padding: 16px 0 8px; }
+        .result-box .big-icon { font-size: 64px; margin-bottom: 6px; }
+        .result-box .title { font-size: 24px; font-weight: 700; }
+        .result-box .sub { font-size: 16px; color: var(--text-light); margin-top: 4px; }
+        .result-box .score-detail { margin: 16px 0 10px; font-size: 18px; }
+        .result-box .score-detail strong { font-size: 28px; color: var(--primary); }
+        @media (max-width: 720px) { /* 响应式略 */ }
+        @media (max-width: 480px) { /* 响应式略 */ }
+        .modal::-webkit-scrollbar { width: 6px; }
+        .modal::-webkit-scrollbar-track { background: transparent; }
+        .modal::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-left">
+                <h1>⚡ C++ <span>学习闯关</span></h1>
+                <p>📘 详细课程 + 💻 代码实操 · 一步一步来</p>
+            </div>
+            <div class="header-progress">
+                <div class="stats">
+                    <span>🏆 通关 <span class="num" id="totalPassed">0</span>/7</span>
+                    <span>⭐ 总得分 <span class="num" id="totalScore">0</span></span>
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="fill" id="globalProgress" style="width:0%"></div>
+                </div>
+            </div>
+        </header>
+        <!-- Tab 导航 -->
+        <div class="tabs" role="tablist">
+            <button class="active" data-tab="course">📚 课程学习 <span class="badge">5章</span></button>
+            <button data-tab="game">🎮 闯关挑战 <span class="badge" id="levelBadge">7关</span></button>
+        </div>
+        <!-- 课程面板 -->
+        <div class="panel active" id="panel-course">
+            <div class="course-grid" id="courseContainer"></div>
+        </div>
+        <!-- 闯关面板 -->
+        <div class="panel" id="panel-game">
+            <div class="level-grid" id="levelContainer"></div>
+        </div>
+        <!-- 答题模态框 -->
+        <div class="modal-overlay" id="quizModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 id="modalTitle">关卡 1</h2>
+                    <button class="close-btn" id="modalClose">✕</button>
+                </div>
+                <div class="q-progress">
+                    <span id="qIndexLabel">1 / 3</span>
+                    <div class="bar"><div class="fill" id="qProgressFill" style="width:0%"></div></div>
+                    <span id="qScoreLabel">⭐ 0</span>
+                </div>
+                <div class="question-text" id="questionText">题目加载中...</div>
+                <div class="options" id="optionsContainer"></div>
+                <div class="actions">
+                    <button class="btn-secondary" id="btnReset" style="display:none;">🔄 重来</button>
+                    <button class="btn-primary" id="btnNext">下一题 →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  课程数据 (含详细讲解和代码)
+        // ============================================================
+        const courseData = [{
+            id: 1,
+            icon: '📖',
+            title: '第一阶段：基础语法',
+            desc: '变量 · 数据类型 · 输入输出 · 控制结构',
+            topics: [{
+                title: '变量与数据类型',
+                description: 'C++ 是静态类型语言，变量必须声明类型。基本类型包括 int（整型）、double（浮点）、char（字符）、bool（布尔）。',
+                code: `#include <iostream>\nusing namespace std;\n\nint main() {\n    int age = 25;\n    double pi = 3.14159;\n    char grade = 'A';\n    bool isPass = true;\n\n    cout << "年龄: " << age << endl;\n    cout << "圆周率: " << pi << endl;\n    cout << "等级: " << grade << endl;\n    cout << "是否通过: " << isPass << endl;\n    return 0;\n}`
+            }, {
+                title: '常量 const',
+                description: '使用 const 关键字定义常量，其值不可修改，有助于代码安全和可维护。',
+                code: `#include <iostream>\nusing namespace std;\n\nint main() {\n    const double TAX_RATE = 0.13;\n    double price = 100.0;\n    double total = price * (1 + TAX_RATE);\n    cout << "含税总价: " << total << endl;\n    // TAX_RATE = 0.15;  // 错误：不能修改常量\n    return 0;\n}`
+            }, {
+                title: '输入输出 cin / cout',
+                description: '使用 cin 从键盘读取输入，cout 输出到控制台。需包含 <iostream>。',
+                code: `#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    string name;\n    int age;\n    cout << "请输入姓名: ";\n    cin >> name;\n    cout << "请输入年龄: ";\n    cin >> age;\n    cout << "你好, " << name << "! 你今年 " << age << " 岁。" << endl;\n    return 0;\n}`
+            }, {
+                title: '条件分支 if-else',
+                description: 'if-else 根据条件执行不同代码块，支持 else if 链。',
+                code: `#include <iostream>\nusing namespace std;\n\nint main() {\n    int score;\n    cout << "请输入成绩: ";\n    cin >> score;\n    if (score >= 90) {\n        cout << "优秀" << endl;\n    } else if (score >= 70) {\n        cout << "良好" << endl;\n    } else if (score >= 60) {\n        cout << "及格" << endl;\n    } else {\n        cout << "不及格" << endl;\n    }\n    return 0;\n}`
+            }, {
+                title: '循环结构 for / while',
+                description: 'for 循环用于已知次数迭代，while 用于条件控制循环。',
+                code: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // for 循环: 打印 1~5\n    for (int i = 1; i <= 5; i++) {\n        cout << i << " ";\n    }\n    cout << endl;\n\n    // while 循环: 计算 1~100 的和\n    int sum = 0, n = 1;\n    while (n <= 100) {\n        sum += n;\n        n++;\n    }\n    cout << "1~100 的和 = " << sum << endl;\n    return 0;\n}`
+            }]
+        }, {
+            id: 2,
+            icon: '⚙️',
+            title: '第二阶段：函数与数组',
+            desc: '函数定义 · 重载 · 引用 · 数组进阶',
+            topics: [{
+                title: '函数定义与调用',
+                description: '函数将代码封装成可复用的模块，包含返回类型、函数名、参数列表和函数体。',
+                code: `#include <iostream>\nusing namespace std;\n\nint add(int a, int b) {\n    return a + b;\n}\n\nint main() {\n    int result = add(5, 3);\n    cout << "5 + 3 = " << result << endl;\n    return 0;\n}`
+            }, {
+                title: '参数传递（值传递 vs 引用传递）',
+                description: '值传递拷贝参数，引用传递操作原变量，用 & 表示引用。',
+                code: `#include <iostream>\nusing namespace std;\n\nvoid swapByValue(int a, int b) {\n    int temp = a; a = b; b = temp;\n}\n\nvoid swapByRef(int &a, int &b) {\n    int temp = a; a = b; b = temp;\n}\n\nint main() {\n    int x = 1, y = 2;\n    swapByValue(x, y);\n    cout << "值传递后: x=" << x << " y=" << y << endl;\n    swapByRef(x, y);\n    cout << "引用传递后: x=" << x << " y=" << y << endl;\n    return 0;\n}`
+            }, {
+                title: '函数重载 (Overload)',
+                description: '同名函数可以有不同的参数类型或数量，编译器根据参数区分。',
+                code: `#include <iostream>\nusing namespace std;\n\nint max(int a, int b) {\n    return (a > b) ? a : b;\n}\n\ndouble max(double a, double b) {\n    return (a > b) ? a : b;\n}\n\nint main() {\n    cout << "max(3,5) = " << max(3,5) << endl;\n    cout << "max(2.5, 1.8) = " << max(2.5, 1.8) << endl;\n    return 0;\n}`
+            }, {
+                title: '数组与 std::vector',
+                description: '数组是固定大小的同类型元素集合；vector 是动态数组，更灵活。',
+                code: `#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    // 静态数组\n    int arr[5] = {10, 20, 30, 40, 50};\n    cout << "数组元素: ";\n    for (int i = 0; i < 5; i++) {\n        cout << arr[i] << " ";\n    }\n    cout << endl;\n\n    // vector\n    vector<int> vec = {1, 2, 3};\n    vec.push_back(4);\n    cout << "vector: ";\n    for (int v : vec) {\n        cout << v << " ";\n    }\n    cout << endl;\n    return 0;\n}`
+            }]
+        }, {
+            id: 3,
+            icon: '🧠',
+            title: '第三阶段：指针与引用',
+            desc: '内存地址 · 指针运算 · 动态内存 · 智能指针',
+            topics: [{
+                title: '指针基础',
+                description: '指针存储变量的内存地址，用 * 声明和解引用，& 取地址。',
+                code: `#include <iostream>\nusing namespace std;\n\nint main() {\n    int num = 42;\n    int* ptr = &num;\n    cout << "num 的值: " << num << endl;\n    cout << "num 的地址: " << &num << endl;\n    cout << "ptr 存储的地址: " << ptr << endl;\n    cout << "通过 ptr 访问值: " << *ptr << endl;\n    *ptr = 100;\n    cout << "修改后 num = " << num << endl;\n    return 0;\n}`
+            }, {
+                title: '动态内存分配 new / delete',
+                description: '使用 new 在堆上分配内存，delete 释放，需手动管理避免泄漏。',
+                code: `#include <iostream>\nusing namespace std;\n\nint main() {\n    int* p = new int(99);\n    cout << "*p = " << *p << endl;\n    delete p;\n\n    int* arr = new int[5];\n    for (int i = 0; i < 5; i++) arr[i] = i * 2;\n    for (int i = 0; i < 5; i++) cout << arr[i] << " ";\n    cout << endl;\n    delete[] arr;\n    return 0;\n}`
+            }, {
+                title: '智能指针 unique_ptr',
+                description: 'C++11 引入智能指针自动管理内存，unique_ptr 独占所有权，离开作用域自动释放。',
+                code: `#include <iostream>\n#include <memory>\nusing namespace std;\n\nint main() {\n    unique_ptr<int> up = make_unique<int>(55);\n    cout << "*up = " << *up << endl;\n    \n    unique_ptr<int[]> upArr = make_unique<int[]>(4);\n    for (int i = 0; i < 4; i++) upArr[i] = i * 3;\n    for (int i = 0; i < 4; i++) cout << upArr[i] << " ";\n    cout << endl;\n    return 0;\n}`
+            }, {
+                title: '引用 (Reference)',
+                description: '引用是变量的别名，必须初始化，且不能改变指向，使用更安全。',
+                code: `#include <iostream>\nusing namespace std;\n\nint main() {\n    int a = 10;\n    int &ref = a;\n    ref = 20;\n    cout << "a = " << a << endl;\n    return 0;\n}`
+            }]
+        }, {
+            id: 4,
+            icon: '🏛️',
+            title: '第四阶段：面向对象编程',
+            desc: '类与对象 · 继承 · 多态 · 封装',
+            topics: [{
+                title: '类与对象 (class)',
+                description: '类封装数据（成员变量）和行为（成员函数）。对象是类的实例。',
+                code: `#include <iostream>\n#include <string>\nusing namespace std;\n\nclass Student {\npublic:\n    string name;\n    int age;\n    void display() {\n        cout << "姓名: " << name << ", 年龄: " << age << endl;\n    }\n};\n\nint main() {\n    Student s1;\n    s1.name = "张三";\n    s1.age = 20;\n    s1.display();\n    return 0;\n}`
+            }, {
+                title: '构造函数与析构函数',
+                description: '构造函数在对象创建时初始化，析构函数在销毁前清理资源。',
+                code: `#include <iostream>\n#include <string>\nusing namespace std;\n\nclass Person {\npublic:\n    string name;\n    Person(string n) : name(n) {\n        cout << "构造: " << name << endl;\n    }\n    ~Person() {\n        cout << "析构: " << name << endl;\n    }\n};\n\nint main() {\n    Person p1("Alice");\n    Person p2("Bob");\n    return 0;\n}`
+            }, {
+                title: '继承与派生',
+                description: '派生类继承基类的成员，实现代码重用，并可扩展或重写。',
+                code: `#include <iostream>\nusing namespace std;\n\nclass Animal {\npublic:\n    void eat() { cout << "吃东西" << endl; }\n};\n\nclass Dog : public Animal {\npublic:\n    void bark() { cout << "汪汪" << endl; }\n};\n\nint main() {\n    Dog dog;\n    dog.eat();\n    dog.bark();\n    return 0;\n}`
+            }, {
+                title: '多态与虚函数',
+                description: '通过虚函数实现运行时多态，基类指针可以调用派生类重写的函数。',
+                code: `#include <iostream>\nusing namespace std;\n\nclass Shape {\npublic:\n    virtual void draw() { cout << "绘制图形" << endl; }\n};\n\nclass Circle : public Shape {\npublic:\n    void draw() override { cout << "绘制圆形" << endl; }\n};\n\nclass Square : public Shape {\npublic:\n    void draw() override { cout << "绘制正方形" << endl; }\n};\n\nint main() {\n    Shape* shapes[] = { new Circle(), new Square() };\n    for (int i = 0; i < 2; i++) {\n        shapes[i]->draw();\n        delete shapes[i];\n    }\n    return 0;\n}`
+            }]
+        }, {
+            id: 5,
+            icon: '📦',
+            title: '第五阶段：STL 与标准库',
+            desc: '容器 · 迭代器 · 算法 · 现代 C++',
+            topics: [{
+                title: 'vector 容器',
+                description: 'vector 是动态数组，支持随机访问，自动扩容。',
+                code: `#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    vector<int> v = {1, 2, 3};\n    v.push_back(4);\n    v.push_back(5);\n    cout << "大小: " << v.size() << endl;\n    cout << "元素: ";\n    for (int x : v) cout << x << " ";\n    cout << endl;\n    return 0;\n}`
+            }, {
+                title: 'map 关联容器',
+                description: 'map 存储键值对，按键排序，快速查找。',
+                code: `#include <iostream>\n#include <map>\nusing namespace std;\n\nint main() {\n    map<string, int> scores;\n    scores["Alice"] = 95;\n    scores["Bob"] = 87;\n    scores["Charlie"] = 92;\n    for (auto &p : scores) {\n        cout << p.first << " -> " << p.second << endl;\n    }\n    cout << "Bob 的成绩: " << scores["Bob"] << endl;\n    return 0;\n}`
+            }, {
+                title: '算法库 sort / find',
+                description: 'STL 提供大量通用算法，如排序、查找，配合迭代器使用。',
+                code: `#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    vector<int> nums = {5, 2, 8, 1, 9};\n    sort(nums.begin(), nums.end());\n    cout << "排序后: ";\n    for (int n : nums) cout << n << " ";\n    cout << endl;\n\n    auto it = find(nums.begin(), nums.end(), 8);\n    if (it != nums.end()) {\n        cout << "找到 8，位置: " << (it - nums.begin()) << endl;\n    }\n    return 0;\n}`
+            }, {
+                title: 'Lambda 表达式',
+                description: 'C++11 引入匿名函数，可用于算法回调或简洁代码。',
+                code: `#include <iostream>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nint main() {\n    vector<int> v = {1, 2, 3, 4, 5};\n    vector<int> evens;\n    copy_if(v.begin(), v.end(), back_inserter(evens), [](int x) { return x % 2 == 0; });\n    cout << "偶数: ";\n    for (int e : evens) cout << e << " ";\n    cout << endl;\n    return 0;\n}`
+            }]
+        }];
+
+        // ----- 关卡数据 (不变) -----
+        const levelData = [{
+            id: 1,
+            name: 'C++ 初印象',
+            icon: '🚀',
+            questions: [{ question: 'C++ 是由哪位计算机科学家发明的？', options: ['Bjarne Stroustrup', 'Dennis Ritchie', 'James Gosling', 'Linus Torvalds'], answer: 0 },
+            { question: '以下哪个是 C++ 中正确的单行注释符号？', options: ['//', '#', '/*', '--'], answer: 0 },
+            { question: 'C++ 标准库的头文件通常使用什么扩展名？', options: ['.h', '.hpp', '.cpp', '.c'], answer: 1 }]
+        }, {
+            id: 2,
+            name: '变量与数据类型',
+            icon: '🔢',
+            questions: [{ question: 'int 类型在大多数 32 位系统上占几个字节？', options: ['2', '4', '8', '1'], answer: 1 },
+            { question: '声明一个整型常量，正确的语法是？', options: ['const int x = 5;', 'int const x = 5;', '两者都是', '两者都不是'], answer: 2 },
+            { question: '以下哪个不是 C++ 的基本内置数据类型？', options: ['int', 'float', 'string', 'char'], answer: 2 }]
+        }, {
+            id: 3,
+            name: '控制结构',
+            icon: '🔀',
+            questions: [{ question: '以下哪个是合法的 if 语句？', options: ['if (x > 0) { }', 'if x > 0 { }', 'if (x > 0) { } else', '以上都是'], answer: 0 },
+            { question: 'for 循环的正确语法是？', options: ['for (int i=0; i<10; i++)', 'for i=0 to 10', 'for (i=0; i<10; i++)', 'A 和 C 都正确'], answer: 3 },
+            { question: 'switch 语句中 break 的作用是？', options: ['跳出当前循环', '跳出 switch 语句', '继续执行下一个 case', '结束程序'], answer: 1 }]
+        }, {
+            id: 4,
+            name: '函数进阶',
+            icon: '📐',
+            questions: [{ question: '函数返回类型为 void 表示什么？', options: ['返回 int 类型', '不返回任何值', '返回任意类型', '返回空指针'], answer: 1 },
+            { question: '以下哪个是函数重载（Overload）？', options: ['同名函数不同参数列表', '同名函数不同返回类型', '不同名函数', '以上都不是'], answer: 0 },
+            { question: '默认参数在函数声明中如何指定？', options: ['int func(int x = 0)', 'int func(int x) default 0', 'int func(int x) = 0', '以上都不对'], answer: 0 }]
+        }, {
+            id: 5,
+            name: '数组与字符串',
+            icon: '📝',
+            questions: [{ question: '声明一个包含 10 个整数的数组，正确语法是？', options: ['int arr[10];', 'int[10] arr;', 'array<int,10> arr;', 'A 和 C 都正确'], answer: 3 },
+            { question: 'C++ 中推荐使用哪个类型来表示字符串？', options: ['char[]', 'std::string', 'string', 'String'], answer: 1 },
+            { question: '使用 vector 容器需要包含哪个头文件？', options: ['<vector>', '<list>', '<array>', '<map>'], answer: 0 }]
+        }, {
+            id: 6,
+            name: '指针与引用',
+            icon: '📍',
+            questions: [{ question: '声明一个指向 int 的指针，正确语法是？', options: ['int* p;', 'int p*;', '*int p;', '以上都不对'], answer: 0 },
+            { question: '引用与指针的主要区别是？', options: ['引用不能为空', '指针不能为空', '引用可以重新赋值', '没有区别'], answer: 0 },
+            { question: '在 C++ 中动态分配内存使用哪个关键字？', options: ['new', 'malloc', 'create', 'alloc'], answer: 0 }]
+        }, {
+            id: 7,
+            name: '面向对象基础',
+            icon: '🏛️',
+            questions: [{ question: '类中的成员默认访问权限是？', options: ['private', 'public', 'protected', 'internal'], answer: 0 },
+            { question: 'C++ 中继承的语法是？', options: ['class B : public A', 'class B extends A', 'class B inherits A', '以上都是'], answer: 0 },
+            { question: '虚函数（virtual）的主要作用是？', options: ['实现多态', '实现封装', '实现继承', '实现抽象'], answer: 0 }]
+        }];
+
+        // ============================================================
+        //  状态管理
+        // ============================================================
+        const state = { progress: {}, currentLevelId: null, currentQIndex: 0, tempAnswers: [], answered: false };
+        function initProgress() {
+            levelData.forEach(lv => {
+                if (!state.progress[lv.id]) state.progress[lv.id] = { passed: false, score: 0, answers: [] };
+                while (state.progress[lv.id].answers.length < lv.questions.length) state.progress[lv.id].answers.push(-1);
+            });
+        }
+        initProgress();
+
+        function getLevel(id) { return levelData.find(l => l.id === id); }
+        function getProgress(id) { return state.progress[id]; }
+        function isLevelUnlocked(id) {
+            if (id === 1) return true;
+            const prev = levelData.find(l => l.id === id - 1);
+            if (!prev) return true;
+            return state.progress[prev.id]?.passed || false;
+        }
+        function isLevelCompleted(id) { return state.progress[id]?.passed || false; }
+        function getTotalPassed() { return levelData.filter(l => state.progress[l.id]?.passed).length; }
+        function getTotalScore() { return levelData.reduce((sum, l) => sum + (state.progress[l.id]?.score || 0), 0); }
+
+        // ============================================================
+        //  复制工具函数 (修复版)
+        // ============================================================
+        function copyToClipboard(text, btn) {
+            // 优先使用现代 Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopied(btn);
+                }).catch(() => {
+                    fallbackCopy(text, btn);
+                });
+            } else {
+                fallbackCopy(text, btn);
+            }
+        }
+
+        function fallbackCopy(text, btn) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                const success = document.execCommand('copy');
+                if (success) {
+                    showCopied(btn);
+                } else {
+                    alert('复制失败，请手动复制代码。');
+                }
+            } catch (err) {
+                alert('复制失败，请手动复制代码。');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showCopied(btn) {
+            btn.textContent = '✅ 已复制';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = '复制代码';
+                btn.classList.remove('copied');
+            }, 2000);
+        }
+
+        // ============================================================
+        //  渲染函数
+        // ============================================================
+        function updateHeader() {
+            const passed = getTotalPassed();
+            const score = getTotalScore();
+            document.getElementById('totalPassed').textContent = passed;
+            document.getElementById('totalScore').textContent = score;
+            const pct = levelData.length > 0 ? Math.round((passed / levelData.length) * 100) : 0;
+            document.getElementById('globalProgress').style.width = pct + '%';
+            document.getElementById('levelBadge').textContent = `${passed}/${levelData.length} 关`;
+        }
+
+        function renderCourses() {
+            const container = document.getElementById('courseContainer');
+            container.innerHTML = courseData.map(c => `
+                    <div class="course-card">
+                        <div class="course-header" data-course="${c.id}">
+                            <div class="left">
+                                <span class="icon">${c.icon}</span>
+                                <div class="info">
+                                    <h3>${c.title}</h3>
+                                    <div class="desc">${c.desc}</div>
+                                </div>
+                            </div>
+                            <span class="arrow">▾</span>
+                        </div>
+                        <div class="course-body" id="courseBody${c.id}">
+                            ${c.topics.map((t, idx) => `
+                                <div class="topic-item">
+                                    <div class="topic-header" data-topic="${c.id}-${idx}">
+                                        <span>${t.title}</span>
+                                        <span class="arrow-topic">▾</span>
+                                    </div>
+                                    <div class="topic-body" id="topicBody${c.id}-${idx}">
+                                        <div class="description">${t.description}</div>
+                                        <div class="code-block">
+                                            <button class="copy-btn">复制代码</button>
+                                            <code>${t.code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+
+            // 课程卡片展开/收起
+            document.querySelectorAll('.course-header').forEach(el => {
+                el.addEventListener('click', function() {
+                    const id = this.dataset.course;
+                    const body = document.getElementById('courseBody' + id);
+                    const isOpen = body.classList.contains('open');
+                    document.querySelectorAll('.course-body').forEach(b => b.classList.remove('open'));
+                    document.querySelectorAll('.course-header').forEach(h => h.classList.remove('open'));
+                    if (!isOpen) {
+                        body.classList.add('open');
+                        this.classList.add('open');
+                    }
+                });
+            });
+
+            // 知识点条目展开/收起
+            document.querySelectorAll('.topic-header').forEach(el => {
+                el.addEventListener('click', function() {
+                    const topicId = this.dataset.topic;
+                    const body = document.getElementById('topicBody' + topicId);
+                    const isOpen = body.classList.contains('open');
+                    if (isOpen) {
+                        body.classList.remove('open');
+                        this.classList.remove('open');
+                    } else {
+                        body.classList.add('open');
+                        this.classList.add('open');
+                    }
+                });
+            });
+
+            // 复制按钮 (修复版)
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const codeBlock = this.closest('.code-block');
+                    const codeElement = codeBlock.querySelector('code');
+                    const codeText = codeElement.textContent; // 获取纯文本（已解码）
+                    copyToClipboard(codeText, this);
+                });
+            });
+
+            // 默认展开第一个课程卡片和第一个知识点
+            const firstHeader = document.querySelector('.course-header');
+            if (firstHeader) {
+                const id = firstHeader.dataset.course;
+                document.getElementById('courseBody' + id).classList.add('open');
+                firstHeader.classList.add('open');
+                const firstTopic = document.querySelector('.topic-header');
+                if (firstTopic) {
+                    const topicId = firstTopic.dataset.topic;
+                    document.getElementById('topicBody' + topicId).classList.add('open');
+                    firstTopic.classList.add('open');
+                }
+            }
+        }
+
+        // 渲染关卡 (与之前相同)
+        function renderLevels() {
+            const container = document.getElementById('levelContainer');
+            container.innerHTML = levelData.map(lv => {
+                const prog = getProgress(lv.id);
+                const unlocked = isLevelUnlocked(lv.id);
+                const completed = isLevelCompleted(lv.id);
+                let statusText, statusClass, lockIcon = '';
+                if (completed) {
+                    statusText = `✅ 通关 (${prog.score}/30)`;
+                    statusClass = 'done';
+                } else if (unlocked) {
+                    statusText = '🔓 挑战';
+                    statusClass = 'unlock';
+                } else {
+                    statusText = '🔒 未解锁';
+                    statusClass = 'lock';
+                    lockIcon = '🔒';
+                }
+                return `
+                        <div class="level-card ${!unlocked ? 'locked' : ''}" data-level="${lv.id}">
+                            ${lockIcon ? `<span class="lock-icon">${lockIcon}</span>` : ''}
+                            <div class="lvl-icon">${lv.icon}</div>
+                            <div class="lvl-num">第 ${lv.id} 关</div>
+                            <div class="lvl-name">${lv.name}</div>
+                            <div class="lvl-status ${statusClass}">${statusText}</div>
+                            ${completed ? `<div class="lvl-score">⭐ ${prog.score} 分</div>` : ''}
+                        </div>
+                    `;
+            }).join('');
+            container.querySelectorAll('.level-card:not(.locked)').forEach(el => {
+                el.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.level);
+                    openQuiz(id);
+                });
+            });
+        }
+
+        // ============================================================
+        //  答题模态框 (与之前相同)
+        // ============================================================
+        function openQuiz(levelId) {
+            const lv = getLevel(levelId);
+            if (!lv) return;
+            const prog = getProgress(levelId);
+            if (prog.passed) {
+                if (!confirm('此关卡已通关，是否重新挑战？')) return;
+                prog.passed = false;
+                prog.score = 0;
+                prog.answers = lv.questions.map(() => -1);
+            }
+            state.currentLevelId = levelId;
+            state.currentQIndex = 0;
+            state.tempAnswers = [...prog.answers];
+            state.answered = false;
+            const modal = document.getElementById('quizModal');
+            modal.classList.add('open');
+            document.getElementById('modalTitle').textContent = `第 ${lv.id} 关 · ${lv.name}`;
+            document.getElementById('btnReset').style.display = 'none';
+            renderQuestion();
+            updateHeader();
+        }
+
+        function closeQuiz() {
+            document.getElementById('quizModal').classList.remove('open');
+            saveCurrentProgress();
+            renderLevels();
+            updateHeader();
+        }
+
+        function saveCurrentProgress() {
+            if (state.currentLevelId === null) return;
+            const prog = getProgress(state.currentLevelId);
+            if (prog) {
+                prog.answers = [...state.tempAnswers];
+                const lv = getLevel(state.currentLevelId);
+                let score = 0;
+                lv.questions.forEach((q, idx) => {
+                    if (state.tempAnswers[idx] === q.answer) score += 10;
+                });
+                prog.score = score;
+                const correctCount = state.tempAnswers.filter((a, i) => a === lv.questions[i].answer).length;
+                prog.passed = correctCount >= 2;
+            }
+        }
+
+        function renderQuestion() {
+            const lv = getLevel(state.currentLevelId);
+            if (!lv) return;
+            const qs = lv.questions;
+            const idx = state.currentQIndex;
+            if (idx >= qs.length) { showResult(); return; }
+            const q = qs[idx];
+            const selected = state.tempAnswers[idx] ?? -1;
+            const answered = selected !== -1;
+            document.getElementById('qIndexLabel').textContent = `${idx+1} / ${qs.length}`;
+            document.getElementById('qProgressFill').style.width = ((idx) / qs.length * 100) + '%';
+            document.getElementById('qScoreLabel').textContent = `⭐ ${getProgress(state.currentLevelId).score}`;
+            document.getElementById('questionText').textContent = q.question;
+            const container = document.getElementById('optionsContainer');
+            const letters = ['A', 'B', 'C', 'D'];
+            container.innerHTML = q.options.map((opt, oi) => {
+                let cls = 'opt';
+                if (answered) {
+                    cls += ' disabled';
+                    if (oi === q.answer) cls += ' correct';
+                    if (oi === selected && oi !== q.answer) cls += ' wrong';
+                    if (oi === selected) cls += ' selected';
+                } else {
+                    if (oi === selected) cls += ' selected';
+                }
+                const checkMark = (answered && oi === q.answer) ? '✅' :
+                    (answered && oi === selected && oi !== q.answer) ? '❌' : '';
+                return `<div class="${cls}" data-opt="${oi}"><span class="letter">${letters[oi]}</span>${opt}${checkMark ? `<span class="check">${checkMark}</span>` : ''}</div>`;
+            }).join('');
+            if (!answered) {
+                container.querySelectorAll('.opt').forEach(el => {
+                    el.addEventListener('click', function() {
+                        if (state.answered) return;
+                        const oi = parseInt(this.dataset.opt);
+                        if (state.tempAnswers[state.currentQIndex] === oi) {
+                            state.tempAnswers[state.currentQIndex] = -1;
+                        } else {
+                            state.tempAnswers[state.currentQIndex] = oi;
+                        }
+                        renderQuestion();
+                    });
+                });
+            }
+            const btnNext = document.getElementById('btnNext');
+            const btnReset = document.getElementById('btnReset');
+            if (answered) {
+                btnNext.textContent = (idx === qs.length - 1) ? '📊 查看结果' : '下一题 →';
+                btnNext.disabled = false;
+                btnReset.style.display = 'inline-block';
+            } else {
+                btnNext.textContent = (idx === qs.length - 1) ? '📊 查看结果' : '下一题 →';
+                btnNext.disabled = selected === -1;
+                btnReset.style.display = 'none';
+            }
+            state.answered = answered;
+        }
+
+        function showResult() {
+            const lv = getLevel(state.currentLevelId);
+            if (!lv) return;
+            const prog = getProgress(state.currentLevelId);
+            const correctCount = state.tempAnswers.filter((a, i) => a === lv.questions[i].answer).length;
+            const passed = correctCount >= 2;
+            const score = prog.score;
+            document.getElementById('qIndexLabel').textContent = `完成!`;
+            document.getElementById('qProgressFill').style.width = '100%';
+            document.getElementById('qScoreLabel').textContent = `⭐ ${score}`;
+            document.getElementById('questionText').innerHTML = `
+                    <div class="result-box">
+                        <div class="big-icon">${passed ? '🎉' : '😅'}</div>
+                        <div class="title">${passed ? '恭喜通关！' : '再接再厉！'}</div>
+                        <div class="sub">${passed ? '你已掌握本关核心知识！' : '答对 2 题以上才能过关，再试一次吧！'}</div>
+                        <div class="score-detail">答对 <strong>${correctCount}</strong> / ${lv.questions.length} 题 &nbsp;·&nbsp; 得分 <strong>${score}</strong> 分</div>
+                        ${passed ? '✅ 已解锁下一关！' : '💪 多复习课程内容，再来挑战！'}
+                    </div>
+                `;
+            document.getElementById('optionsContainer').innerHTML = '';
+            document.getElementById('btnNext').style.display = 'none';
+            document.getElementById('btnReset').style.display = 'inline-block';
+            document.getElementById('btnReset').textContent = passed ? '🏠 返回' : '🔄 重新挑战';
+            saveCurrentProgress();
+            if (passed) { renderLevels();
+                updateHeader(); }
+            document.getElementById('qScoreLabel').textContent = `⭐ ${score}`;
+        }
+
+        // 模态框事件
+        document.getElementById('modalClose').addEventListener('click', closeQuiz);
+        document.getElementById('quizModal').addEventListener('click', function(e) { if (e.target === this) closeQuiz(); });
+        document.getElementById('btnNext').addEventListener('click', function() {
+            if (state.currentLevelId === null) return;
+            const lv = getLevel(state.currentLevelId);
+            if (!lv) return;
+            const idx = state.currentQIndex;
+            const qs = lv.questions;
+            if (state.answered) {
+                if (idx === qs.length - 1) { showResult(); } else { state.currentQIndex++;
+                    state.answered = false;
+                    renderQuestion(); }
+            } else {
+                const selected = state.tempAnswers[idx];
+                if (selected === -1) return;
+                state.answered = true;
+                saveCurrentProgress();
+                renderQuestion();
+            }
+        });
+        document.getElementById('btnReset').addEventListener('click', function() {
+            if (state.currentLevelId === null) return;
+            const lv = getLevel(state.currentLevelId);
+            if (!lv) return;
+            const prog = getProgress(state.currentLevelId);
+            prog.answers = lv.questions.map(() => -1);
+            prog.passed = false;
+            prog.score = 0;
+            state.tempAnswers = [...prog.answers];
+            state.currentQIndex = 0;
+            state.answered = false;
+            document.getElementById('btnNext').style.display = 'inline-block';
+            document.getElementById('btnReset').style.display = 'none';
+            renderLevels();
+            updateHeader();
+            renderQuestion();
+        });
+
+        // Tab 切换
+        document.querySelectorAll('.tabs button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const target = this.dataset.tab;
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                document.getElementById('panel-' + target).classList.add('active');
+                if (target === 'game') { renderLevels();
+                    updateHeader(); }
+            });
+        });
+
+        // 初始化
+        function init() {
+            renderCourses();
+            renderLevels();
+            updateHeader();
+            document.querySelector('[data-tab="course"]').click();
+        }
+        init();
+        console.log('C++ 学习闯关已启动！复制功能已修复 💻');
+    </script>
+</body>
+</html>
